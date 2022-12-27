@@ -1,42 +1,65 @@
-# NX-extend
+# @nx-extend/e2e-runner
 
-🔎 **NX-extend is a set of tools to help your NX project.**
+<a href="https://www.npmjs.com/package/@nx-extend/e2e-runner" rel="nofollow">
+  <img src="https://badgen.net/npm/v/@nx-extend/e2e-runner" alt="@nx-extend/e2e-runner NPM package">
+</a>
 
-## Nx-extend adds the following capabilities to your workspace
+**Nx plugin to start your API and then run the Cypress/Playwright E2E tests**.
 
-- [Firebase Hosting](./packages/firebase-hosting/README.md)
-  - `npm install --save-dev @nx-extend/firebase-hosting`
-- [E2E-Runner](./packages/e2e-runner/README.md)
-  - `npm install --save-dev @nx-extend/e2e-runner`
-- [GCP Cloud Run](./packages/gcp-cloud-run/README.md)
-  - `npm install --save-dev @nx-extend/gcp-cloud-run`
-- [GCP Deployment Manager](./packages/gcp-deployment-manager/README.md)
-  - `npm install --save-dev @nx-extend/gcp-deployment-manager`
-- [GCP Functions](./packages/gcp-functions/README.md)
-  - `npm install --save-dev @nx-extend/gcp-functions`
-- [GCP Secrets](./packages/gcp-secrets/README.md)
-  - `npm install --save-dev @nx-extend/gcp-secrets`
-- [GCP Storage](./packages/gcp-storage/README.md)
-  - `npm install --save-dev @nx-extend/gcp-storage`
-- [GCP Task Runner](./packages/gcp-task-runner/README.md)
-  - `npm install --save-dev @nx-extend/gcp-task-runner`
-- [Translations](./packages/translations/README.md)
-  - `npm install --save-dev @nx-extend/translations`
-- [Strapi](./packages/strapi/README.md)
-  - `npm install --save-dev @nx-extend/strapi`
-- [Vercel](./packages/vercel/README.md)
-  - `npm install --save-dev @nx-extend/vercel`
+## Setup
+
+### Install
+
+```sh
+npm install -D @nx-extend/e2e-runner
+nx g @nx-extend/e2e-runner:add
+```
+
+#### Available options:
+
+> All options of @nrwl/cypress:cypress are available here if runner = cypress
+> All options of @nx-extend/playwright:test are available here if runner = playwright 
+> All options of @nrwl/workspace:run-commands are available here if runner = run-commands
 
 
-## GitHub actions
+### Target options:
+The `targets` option is used to define targets that should be started before running the tests.
+Each target can be configured with the following options.
 
-- [run-many](./actions/run-many/README.md)
-  - `uses: tripss/nx-extend/actions/run-many@master`
+```typescript
+{
+  target: string // The target to run.
+  checkUrl?: string // The url to check if the target is "live", a target is live if this url returns a status-code in the 200 range.
+  checkMaxTries?: number // The amount of times the `checkUrl` is tried before failing, there is a two second delay between tries.
+  env?: { [key: string]: string } // Extra parameters provided to the target on startup.
+  reuseExistingServer?: boolean // Set to true to allow using a previously started target.
+  rejectUnauthorized?: boolean // Set to false to allow the use of self-signed certificates in your target.
+}
+```
 
-## [License](./LICENSE)
+Example target
 
-Conventional Changelog Action is [MIT licensed](./LICENSE).
-
-## Collaboration
-
-If you have questions or [issues](https://github.com/TriPSs/nx-extend/issues), please [open an issue](https://github.com/TriPSs/nx-extend/issues/new)!
+```json
+{
+  ...
+  "e2e": {
+    "executor": "@nx-extend/e2e-runner:run",
+    "options": {
+      "runner": "playwright | cypress | run-commands",
+      "targets": [
+        {
+          "target": "app:serve",
+          "checkUrl": "http://localhost:4200/",
+          "checkMaxTries": 50,
+          "rejectUnauthorized": true
+        },
+        {
+          "target": "api:serve",
+          "checkUrl": "http://localhost:9000/health",
+          "checkMaxTries": 50
+        }
+      ]
+    }
+  }
+}
+```
